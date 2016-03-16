@@ -2,6 +2,7 @@ var GameField = function() {
   this.canvas = document.getElementsByTagName('canvas')[0];
   this.ctx = this.canvas.getContext('2d');
   this.field = [];
+  this.score = 0;
   //inner logic
   this._getRandomCell = function() {
     var randomCell;
@@ -34,6 +35,8 @@ var GameField = function() {
                    [0, 0, 0, 0],
                    [0, 0, 0, 0] ];
 
+    this.score = 0;
+    this._spawnNewCell(2);
     this._spawnNewCell(2);
   };
 
@@ -82,6 +85,9 @@ var GameField = function() {
                 || i-1 == inPlace) 
              ) {
 
+            var addScore = this.field[y][inPlace] + this.field[y][i];
+            if (addScore > 2)
+              this.score += addScore;
             this.field[y][inPlace] = this.field[y][inPlace] + this.field[y][i];
             this.field[y][i] = 0;
             // move cell somehow
@@ -114,6 +120,9 @@ var GameField = function() {
                || i+1 == inPlace)
              ) {
 
+            var addScore = this.field[y][inPlace] + this.field[y][i];
+            if (addScore > 2)
+              this.score += addScore;
             this.field[y][inPlace] = this.field[y][inPlace] + this.field[y][i];
             this.field[y][i] = 0;
             changed = true;
@@ -139,6 +148,9 @@ var GameField = function() {
               (this.field[i-1][x] == 0 && this.field[inPlace+1][x] == 0
                || i-1 == inPlace)
              ) {
+            var addScore = this.field[inPlace][x] + this.field[i][x];
+            if (addScore > 2)
+              this.score += addScore;
             this.field[inPlace][x] = this.field[inPlace][x] + this.field[i][x];
             this.field[i][x] = 0;
             changed = true;
@@ -164,6 +176,9 @@ var GameField = function() {
               (this.field[i+1][x] == 0 && this.field[inPlace-1][x] == 0
                || i+1 == inPlace)
              ) {
+            var addScore = this.field[inPlace][x] + this.field[i][x];
+            if (addScore > 2)
+              this.score += addScore;
             this.field[inPlace][x] = this.field[inPlace][x] + this.field[i][x];
             this.field[i][x] = 0;
             changed = true;
@@ -207,6 +222,7 @@ var GameField = function() {
 
   this.render = function () {
     this.drawField();
+    document.getElementById('score').innerHTML = this.score;
     for(var y in this.field) {
       for(var x in this.field[y]) {
         if (this.field[y][x] != 0) {
