@@ -1,29 +1,3 @@
-var moveLeft = function(arr) {
-  for(var inPlace = 0; inPlace < arr.length; inPlace++) {
-    for(var i = 0; i < arr.length; i++) {
-      if (i <= inPlace)
-        continue;
-      if (arr[i] != 0 && arr[inPlace] == 0 || arr[inPlace] == arr[i]) {
-        arr[inPlace] = arr[inPlace] + arr[i];
-        arr[i] = 0;
-      }
-    }
-  }
-}
-
-var moveRight = function(arr) {
-  for(var inPlace = arr.length - 1; inPlace >= 0; inPlace--) {
-    for(var i = arr.length - 1; i >= 0; i--) {
-      if (i >= inPlace)
-        continue;
-      if (arr[i] != 0 && arr[inPlace] == 0 || arr[inPlace] == arr[i]) {
-        arr[inPlace] = arr[inPlace] + arr[i];
-        arr[i] = 0;
-      }
-    }
-  }
-}
-
 var GameField = function() {
   this.canvas = document.getElementsByTagName('canvas')[0];
   this.ctx = this.canvas.getContext('2d');
@@ -33,8 +7,8 @@ var GameField = function() {
     var randomCell;
 
     do {
-        randomCell = [ Math.floor(Math.random() * this.field.length),
-                       Math.floor(Math.random() * this.field.length)];
+      randomCell = [ Math.floor(Math.random() * this.field.length),
+                     Math.floor(Math.random() * this.field.length)];
     }
     while (this.field[randomCell[0]][randomCell[1]] != 0);
 
@@ -43,10 +17,15 @@ var GameField = function() {
 
   this._spawnNewCell = function(value) {
     var cell;
+
     if (this._checkIfFieldFull() == false) {
       cell = this._getRandomCell();
       this.field[cell[0]][cell[1]] = value;
+      return true;
     };
+
+    console.log('Field is full');
+    return false;
   };
 
   this._initializeGameField = function() {
@@ -65,72 +44,135 @@ var GameField = function() {
       }
     }
 
-    alert('Game over!');
     return true;
   };
 
-  this.shiftLeft = function () {
+  this.shiftField = function (axis, direction) {
+    var changed;
+
+    if (axis == 'x') {
+      if (direction == '1') {
+        changed = this._shiftRight();
+      } else if (direction == '-1') {
+        changed = this._shiftLeft();
+      }
+    } else if (axis == 'y') {
+      if (direction == '1') {
+        changed = this._shiftTop();
+      } else if (direction == '-1') {
+        changed = this._shiftBottom();
+      }
+    }
+
+    this._spawnNewCell(2);
+  };
+
+  this._shiftLeft = function () {
+    var changed = false;
+
     for(var y in this.field) {
       for(var inPlace = 0; inPlace < this.field[y].length; inPlace++) {
         for(var i = 0; i < this.field[y].length; i++) {
           if (i <= inPlace)
             continue;
-          if (this.field[y][i] != 0 && this.field[y][inPlace] == 0 || this.field[y][inPlace] == this.field[y][i]) {
+          if ( this.field[y][i] != 0 && this.field[y][inPlace] == 0 ||
+               this.field[y][inPlace] == this.field[y][i] && 
+               this.field[y][inPlace] != 0 && this.field[y][i] != 0 && 
+               (this.field[y][i-1] == 0 && this.field[y][inPlace+1] == 0
+                || i-1 == inPlace) 
+             ) {
+
             this.field[y][inPlace] = this.field[y][inPlace] + this.field[y][i];
             this.field[y][i] = 0;
+            // move cell somehow
+            //this.ctx.fillStyle = 'black';
+            //this.ctx.fillRect(0 + 100*i, 0 + 100*y, 100, 100);
+            //this.drawCell(0 + 100*inPlace, 0 + 100*y, '#80a8ff', this.field[y][inPlace]);
+            // stop moving
+
+            changed = true;
           }
         }
       }
     }
-    this._spawnNewCell(2);
+
+    return changed;
   };
 
-  this.shiftRight = function () {
+  this._shiftRight = function () {
+    var changed = false;
+
     for(var y in this.field) {
       for(var inPlace = this.field[y].length - 1; inPlace >= 0; inPlace--) {
         for(var i = this.field[y].length - 1; i >= 0; i--) {
           if (i >= inPlace)
             continue;
-          if (this.field[y][i] != 0 && this.field[y][inPlace] == 0 || this.field[y][inPlace] == this.field[y][i]) {
+          if (this.field[y][i] != 0 && this.field[y][inPlace] == 0 ||
+              this.field[y][inPlace] == this.field[y][i] && 
+              this.field[y][inPlace] != 0 && this.field[y][i] != 0 && 
+              (this.field[y][i+1] == 0 && this.field[y][inPlace-1] == 0
+               || i+1 == inPlace)
+             ) {
+
             this.field[y][inPlace] = this.field[y][inPlace] + this.field[y][i];
             this.field[y][i] = 0;
+            changed = true;
           }
         }
       }
     }
-    this._spawnNewCell(2);
+
+    return changed;
   };
 
-  this.shiftTop= function () {
+  this._shiftTop= function () {
+    var changed = false;
+
     for(var x in this.field) {
       for(var inPlace = 0; inPlace < this.field.length; inPlace++) {
         for(var i = 0; i < this.field.length; i++) {
           if (i <= inPlace)
             continue;
-          if (this.field[i][x] != 0 && this.field[inPlace][x] == 0 || this.field[inPlace][x] == this.field[i][x]) {
+          if (this.field[i][x] != 0 && this.field[inPlace][x] == 0 ||
+              this.field[inPlace][x] == this.field[i][x] && 
+              this.field[inPlace][x] != 0 && this.field[i][x] != 0 && 
+              (this.field[i-1][x] == 0 && this.field[inPlace+1][x] == 0
+               || i-1 == inPlace)
+             ) {
             this.field[inPlace][x] = this.field[inPlace][x] + this.field[i][x];
             this.field[i][x] = 0;
+            changed = true;
           }
         }
       }
     }
-    this._spawnNewCell(2);
+
+    return changed;
   };
 
-  this.shiftBottom = function () {
+  this._shiftBottom = function () {
+    var changed = false;
+
     for(var x in this.field) {
       for(var inPlace = this.field.length - 1; inPlace >= 0; inPlace--) {
         for(var i = this.field.length - 1; i >= 0; i--) {
           if (i >= inPlace)
             continue;
-          if (this.field[i][x] != 0 && this.field[inPlace][x] == 0 || this.field[inPlace][x] == this.field[i][x]) {
+          if (this.field[i][x] != 0 && this.field[inPlace][x] == 0 ||
+              this.field[inPlace][x] == this.field[i][x] && 
+              this.field[inPlace][x] != 0 && this.field[i][x] != 0 && 
+              (this.field[i+1][x] == 0 && this.field[inPlace-1][x] == 0
+               || i+1 == inPlace)
+             ) {
             this.field[inPlace][x] = this.field[inPlace][x] + this.field[i][x];
             this.field[i][x] = 0;
+            changed = true;
           }
         }
       }
     }
-    this._spawnNewCell(2);
+
+    return changed;
   };
 
   //rendering functions
@@ -178,11 +220,8 @@ var GameField = function() {
 document.addEventListener('DOMContentLoaded', function() {
   var gameField = new GameField();
 
-  document.getElementById('start-game').onclick = function() {
-    gameField._initializeGameField();
-    //setInterval(gameField.render(), 20);
-    gameField.render();
-  };
+  gameField._initializeGameField();
+  gameField.render();
 
   document.getElementById('reset').onclick = function() {
     gameField.clear();
@@ -190,27 +229,44 @@ document.addEventListener('DOMContentLoaded', function() {
     gameField.render();
   };
 
-  document.getElementById('move-left').onclick = function() {
-    gameField.shiftLeft();
-    gameField.render();
+  document.onkeydown = function(event) {
+    switch (event.keyCode) {
+      case 37:
+        gameField.shiftField('x', '-1');
+        gameField.render();
+        break;
+      case 38:
+        gameField.shiftField('y', '1');
+        gameField.render();
+        break;
+      case 39:
+        gameField.shiftField('x', '1');
+        gameField.render();
+        break;
+      case 40:
+        gameField.shiftField('y', '-1');
+        gameField.render();
+        break;
+      case 72:
+        gameField.shiftField('x', '-1');
+        gameField.render();
+        break;
+      case 75:
+        gameField.shiftField('y', '1');
+        gameField.render();
+        break;
+      case 76:
+        gameField.shiftField('x', '1');
+        gameField.render();
+        break;
+      case 74:
+        gameField.shiftField('y', '-1');
+        gameField.render();
+        break;
+    }
   };
 
-  document.getElementById('move-right').onclick = function() {
-    gameField.shiftRight();
-    gameField.render();
-  };
-
-  document.getElementById('move-top').onclick = function() {
-    gameField.shiftTop();
-    gameField.render();
-  };
-
-  document.getElementById('move-bottom').onclick = function() {
-    gameField.shiftBottom();
-    gameField.render();
-  };
 });
-
 
 //document.addEventListener('DOMContentLoaded', function() {
 //  setInterval(draw, 20);
